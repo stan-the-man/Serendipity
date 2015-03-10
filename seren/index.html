@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Serendipity</title>
+
+    <link rel="stylesheet" href="css/style.css"/>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="jumbotron-narrow.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.3/jquery-ui.js"></script>
+    <script type="js/bootstrap.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+	<script src="js/jquery.form.js"></script>
+    <script src="work.js"></script>
+    <script src="js/soundmanager2.js"></script>
+
+    <script>
+      soundManager.setup({
+        // where to find flash audio SWFs, as needed
+        url: '',
+        onready: function() {
+          // SM2 is ready to play audio!
+        }
+      });
+    </script>
+    <script src="music.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header">
+        
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" class="active"><a href="#">Login</a></li>
+            <li role="presentation"><a href="#">About</a></li>
+            <li role="presentation"><a href="#">Contact</a></li>
+          </ul>
+        </nav>
+        
+        <h3 class="text-muted">Serendipity</h3>
+      </div>
+
+      <div class="jumbotron">
+        <button id="showFileSearch" type="button" onclick="dispFileSection()" class="btn btn-primary">Search By File</button>
+        <button id="showTextSearch" type="button" onclick="dispTextSection()" class="btn btn-primary">Search By Text</button>
+        <div id="fileSearch">
+          <h2>Select a File</h2>
+          <p class="lead">Do it.</p>
+          <div id="section_upload" class="display btn-group" align="center" >
+    	      <form id="upload_form" action="upload.php" method="post">
+    	        <b>Select a file for analysis:</b>
+    	        <input id="ufile" type="file" name="myfile" />
+    	      </form>
+
+    	      <div id="file_name"></div>
+    	      <div id="uform_msg"></div>
+    	      <div id="progress">
+    	        <div id="bar"></div>
+    	        <div id="percent">0%</div >
+    	      </div>
+    	    </div>
+        </div>
+        <div id="textSearch">
+          <h2>Enter Text</h2>
+          <p class="lead">Do it.</p>
+          <div class="display btn-group" align="center" >
+              <b>Enter Song or Artist Name</b><br>
+              <input  type="text" style="width: 350px;"/>
+            
+
+            
+          </div>
+        </div>
+      </div>
+
+      <div id="music_section" align="center">
+        <!--<iframe src="https://embed.spotify.com/?uri=spotify:track:4th1RQAelzqgY7wL53UGQt" width="500" height="80" frameborder="0" allowtransparency="true"></iframe>-->
+        
+      </div>
+
+      <footer class="footer">
+        <p>420BIF &#0153;</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>

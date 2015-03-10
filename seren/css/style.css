@@ -1,0 +1,45 @@
+.playThis {
+	width: 200px !important;
+}
+
+.dispText {
+	width: 492px;
+}
+
+#ufile {
+
+}
+
+
+#progress { 
+	position:relative; 
+	width:400px; 
+	border: 1px solid #ddd; 
+	padding: 1px; 
+	border-radius: 0px; 
+}
+
+#bar { 
+	background-color: #B4F5B4; 
+	width:0%; 
+	height:20px; 
+	border-radius: 0px; 
+}
+
+#percent { 
+	position:absolute; 
+	display:inline-block; 
+	top:3px; 
+	left:48%; 
+}
+
+#file_name{
+	display: inline-block;
+	float: right;
+}
+
+
+#section_upload {
+
+	border: none;
+}

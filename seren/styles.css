@@ -1,0 +1,13 @@
+body {
+    background-color: #b0c4de;
+}
+
+.glyphicon-play {
+	width: 200px !important;
+}
+
+#input_form {
+	height: 200px;
+	width: 400px;
+
+}
