@@ -1,4 +1,18 @@
 $(document).ready(function() {
+
+  $(window).keypress(function(e) {
+
+    /*  for debugging:
+
+    console.log(e);
+
+    */
+
+    if (e.which === 13) {
+        //game.check(true);
+        searchByText();
+    }
+  });
   //var fileURL = [{"artist": "Casual", "song": "I Didn't Mean To"}, {"artist": "The Box Tops", "song": "Soul Deep"}, {"artist": "Sonora Santanera", "song": "Amor De Cabaret"}, {"artist": "Adam Ant", "song": "Something Girls"}, {"artist": "Gob", "song": "Face the Ashes"}, {"artist": "Jeff And Sheri Easter", "song": "The Moon And I (Ordinary Day Album Version)"}, {"artist": "Rated R", "song": "Keepin It Real (Skit)"}, {"artist": "Planet P Project", "song": "Pink World"}, {"artist": "Clp", "song": "Insatiable (Instrumental Version)"}, {"artist": "JennyAnyKind", "song": "Young Boy Blues"}];
   //thing = JSON.parse(fileURL);
   //console.log(thing);
@@ -7,7 +21,31 @@ $(document).ready(function() {
 
   */
   //asdf = ["https://p.scdn.co/mp3-preview/2ef31d23f9d52a18c24a1358f590c18b5e11db77"];
-  $("#textSearch").hide();
+  
+  //DEFAULTS
+  //$("#textSearch").hide();
+  $("#fileSearch").hide();
+
+  $("#searchTextSongBox").prop('checked', false);
+  $("#searchTextArtBox").prop('checked', true);
+
+  $("#searchTextSongBox").change(function () {
+    if ( $("#searchTextSongBox").prop('checked') ) {
+      $("#searchTextArtBox").prop('checked', false);
+    } else {
+      $("#searchTextArtBox").prop('checked', true);
+    };
+
+  });
+
+  $("#searchTextArtBox").change(function () {
+    if ( $("#searchTextArtBox").prop('checked') ) {
+      $("#searchTextSongBox").prop('checked', false);
+    } else {
+      $("#searchTextSongBox").prop('checked', true);
+    };
+
+  });
 
   /*
 
@@ -26,7 +64,9 @@ lastUsed = null;
 mySound = [];
 prevLink = [];
 globResp = null;
-
+txtartSearchID = [];
+username = null;
+password = null;
 /* KEEP OUT FOR DEMOOOO
 $.ajax({
             type: "GET",
@@ -268,7 +308,12 @@ function getSongList (_songList) {
   return retData;
 }
 
+
+
 function getASong (_sname, _artist) {
+  /*
+    Gets list of possible song matches for songs from spotify. Then, returns only song name + artist match.
+  */
   getURL = "https://api.spotify.com/v1/search?q="+_sname+"&type=track&limit=25";
   var retData = null;
   $.ajax({
@@ -302,17 +347,173 @@ function getASong (_sname, _artist) {
   
 }
 
+function searchByText () {
+  //console.log( $("#searchTextInput").val() );
+  _searchString = $("#searchTextInput").val();
+
+  //console.log(_searchString);
+  if (_searchString == "") {
+    console.log("search string is null");
+    alert("Must input valid search string.")
+  } else if ( $("#searchTextSongBox").prop('checked') ) { //search by song
+    txtSearchbySong(_searchString);
+  } else { //search by artist
+    txtSearchbyArtist(_searchString);
+  };
+}
+
+function txtSearchbySong (_songString) {
+  _songString = escape(_songString);
+  getURL = "https://api.spotify.com/v1/search?q="+_songString+"&type=track&limit=10";
+  $.ajax({
+    type: "get",
+    url: getURL,
+    async: false,
+    success: function(response)
+    {
+      //console.log(response)
+      Data = response.tracks.items;
+      //console.log(Data[0].artists[0].name)
+    },
+    error: function() {
+      alert("ERROR!!!");
+    }
+  });
+  //I think this for loop works....
+  console.log(Data);
+  console.log(Data[0].artists[0].name);
+  if (globResp == null) {
+    globResp = [];
+  };
+  for (var i = 0; i < Data.length; i++) {
+    prevLink[i] = Data[i].preview_url;
+    var objThing = {};
+    objThing['artist'] = Data[i].artists[0].name;
+    objThing['song'] = Data[i].name;
+    globResp[i] = objThing;
+    // = artnig;
+    //globResp[i].song = Data[i].name;
+    if (i == 0) {
+      $("#music_section").html(createSongButton(Data[i].preview_url, Data[i].name, globResp[i].artist, i));
+    } else {
+      $("#music_section").append(createSongButton(Data[i].preview_url, Data[i].name, globResp[i].artist, i));
+    };
+    
+  };
+  
+}
+
+function txtSearchbyArtist (_artString) {
+
+  _artString = escape(_artString);
+  getURL = "https://api.spotify.com/v1/search?q="+_artString+"&type=artist&limit=10";
+  $.ajax({
+    type: "get",
+    url: getURL,
+    async: false,
+    success: function(response)
+    {
+      //console.log("HI");
+      console.log(response.artists.items)
+      Data = response.artists.items;
+      //console.log(Data[0].artists[0].name)
+    },
+    error: function() {
+      alert("ERROR!!!");
+    }
+  });
+  //I think this for loop works....
+  for (var i = 0; i < Data.length; i++) {
+    if (i == 0) {
+      $("#music_section").html( printArtist(Data[i], i) );
+    } else {
+      $("#music_section").append( printArtist(Data[i], i) );
+    };
+
+  };
+}
+
+function printArtist (_artObj, number) {
+  name = _artObj.name;
+  _id = _artObj.id;
+  txtartSearchID[number] = _id;
+  console.log(_id);
+  DisplayText = '<div id="artist'+number+'" class="btn btn-default btn-lg dispText">'+name+'</div>';
+  //string1 = '<button id="song'+number+'" type="button" onclick="playSoundPrev('+number+')" class="play-btn btn btn-default btn-lg"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>';
+  string2 = '<button type="button" onclick="loadArtistTopTracks('+number+')" class="play-btn btn btn-default btn-lg"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>';
+  //string3 = '<button type="button" onclick="" class="play-btn btn btn-default btn-lg"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span></button></br></br>';
+  //string4 = '<button type="button" onclick="stopSound('+number+')" class="play-btn btn btn-default btn-lg"><span class="glyphicon glyphicon-stop" aria-hidden="true"></span></button>';
+
+   return DisplayText+string2+"<br>"+"<br>";
+}
+
+function loadArtistTopTracks (number) {
+  _id = txtartSearchID[number];
+  console.log(_id);
+  
+  getURL = "https://api.spotify.com/v1/artists/"+_id+"/top-tracks?country=US";
+  $.ajax({
+    type: "get",
+    url: getURL,
+    async: false,
+    success: function(response)
+    {
+      //console.log("HI");
+      console.log(response)
+      Data = response.tracks;
+      //console.log(Data[0].artists[0].name)
+    },
+    error: function() {
+      alert("ERROR!!!");
+    }
+  });
+
+  console.log(Data);
+  //console.log(Data[0].artists[0].name);
+  if (globResp == null) {
+    globResp = [];
+  };
+  for (var i = 0; i < Data.length; i++) {
+    prevLink[i] = Data[i].preview_url;
+    var objThing = {};
+    objThing['artist'] = Data[i].artists[0].name;
+    objThing['song'] = Data[i].name;
+    globResp[i] = objThing;
+    // = artnig;
+    //globResp[i].song = Data[i].name;
+    if (i == 0) {
+      $("#music_section").html(createSongButton(Data[i].preview_url, Data[i].name, globResp[i].artist, i));
+    } else {
+      $("#music_section").append(createSongButton(Data[i].preview_url, Data[i].name, globResp[i].artist, i));
+    };
+    
+  };
+  
+}
+
 function dispFileSection () {
   
     $("#textSearch").hide();
     $("#fileSearch").show();
-
-
-
 }
 
 function dispTextSection () {
- 
     $("#fileSearch").hide();
     $("#textSearch").show();
+}
+
+function userLogin () {
+  $.ajax({
+    type: "get",
+    url: "login.php",
+    async: false,
+    success: function(response)
+    {
+      //console.log("HI");
+      console.log(response)
+    },
+    error: function() {
+      alert("ERROR!!!");
+    }
+  });
 }

@@ -54,12 +54,84 @@
         
         <nav>
           <ul class="nav nav-pills pull-right">
-            <li role="presentation" class="active"><a href="#">Login</a></li>
-            <li role="presentation"><a href="#">About</a></li>
-            <li role="presentation"><a href="#">Contact</a></li>
+            <!-- li class="active" when user is logged in? -->
+            <li role="presentation"><a data-toggle="modal" href="#loginModal">Login</a></li>
+            <li role="presentation"><a data-toggle="modal" href="#aboutModal">About</a></li>
+            <li role="presentation"><a data-toggle="modal" href="#contactModal">Contact</a></li>
           </ul>
         </nav>
-        
+
+        <div class="modal" id="loginModal">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title">Login</h4>
+                </div><div class="container"></div>
+                <div class="modal-body">
+                  <table>
+                    <tr>
+                      <td style="padding:10px;">Username:</td>
+                      <td style="padding:10px;"><input type="text" style="width: 350px;" id="loginUserName"/></td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px;">Password:</td>
+                      <td style="padding:10px;"><input type="text" style="width: 350px;" id="loginPassWord"/></td>
+                    </tr>
+                  </table>
+                  
+                </div>
+                <div class="modal-footer">
+                  <a href="#" data-dismiss="modal" class="btn">Close</a>
+                  <a href="#" class="btn btn-primary" onclick="userLogin()">Login</a>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="modal" id="aboutModal">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title">About Serendipity</h4>
+                </div><div class="container"></div>
+                <div class="modal-body">
+                  <br>
+                  <br>
+                  <br>
+                  Serendipity is a web based musical search and recommendation system which classifies and recommends music by processing extracted traits from songs. Unlike other such systems which use human based music classification, we have automated the recommendation process and created algorithms to do the work so our users discover new music.
+                  <br>
+                  This senior design project of our was intended to be a fun way of exploring and discovering new music.
+                  <br>
+                  <br> 
+                </div>
+                <div class="modal-footer">
+                  <a href="#" data-dismiss="modal" class="btn">Close</a>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <div class="modal" id="contactModal">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title">About Serendipity</h4>
+                </div><div class="container"></div>
+                <div class="modal-body">
+                  We can be reached at mail@serendipity.co
+                  <br>
+                  Please send us any suggestions as well as bugs you have discovered with our platform. 
+                </div>
+                <div class="modal-footer">
+                  <a href="#" data-dismiss="modal" class="btn">Close</a>
+                </div>
+              </div>
+            </div>
+        </div>
+
         <h3 class="text-muted">Serendipity</h3>
       </div>
 
@@ -68,7 +140,6 @@
         <button id="showTextSearch" type="button" onclick="dispTextSection()" class="btn btn-primary">Search By Text</button>
         <div id="fileSearch">
           <h2>Select a File</h2>
-          <p class="lead">Do it.</p>
           <div id="section_upload" class="display btn-group" align="center" >
     	      <form id="upload_form" action="upload.php" method="post">
     	        <b>Select a file for analysis:</b>
@@ -85,11 +156,12 @@
         </div>
         <div id="textSearch">
           <h2>Enter Text</h2>
-          <p class="lead">Do it.</p>
           <div class="display btn-group" align="center" >
-              <b>Enter Song or Artist Name</b><br>
-              <input  type="text" style="width: 350px;"/>
-            
+              <b>Search By:</b><br>
+              <label><input  type="checkbox" value="Song" id="searchTextSongBox"/> Song Name</label> <br>
+              <label><input  type="checkbox" value="Artist" id="searchTextArtBox"/> Artist Name</label> <br>
+              <input type="text" style="width: 350px;" id="searchTextInput"/>
+              <button type="button" onclick="searchByText()" class="play-btn btn-default btn-sm"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
 
             
           </div>
@@ -102,13 +174,14 @@
       </div>
 
       <footer class="footer">
-        <p>420BIF &#0153;</p>
+        <p>ECSW &#0153;</p>
       </footer>
 
     </div> <!-- /container -->
 
 
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug 
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>-->
+    
   </body>
 </html>
