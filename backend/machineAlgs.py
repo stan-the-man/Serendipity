@@ -1,5 +1,28 @@
 import math
 from numpy import genfromtxt
+from graphDB import search
+
+
+# Idea for what to do:
+# create a path for all these path thingies. Then find all the songs and randomize from
+# list.
+
+# Perhaps precompute similarities for all songs on path. A lot to compute and store
+# but would be useful for quicker results and retrieval. 
+
+# with precomputed, we can find things by text insta, AND select from better lists
+# for mp3 related information. 
+
+
+# Funtion: filterKey()
+# Args: two song keys, one is the main key, the other the comparison key
+
+# returns true if the key is the same or the relative minor/major, else false
+def filterKey(key1, key2) :
+	if key1 == key2 or key1 == ((key2 + 5) % 12) or key1 == ((key2 + 7) % 12):
+		return True
+	return False
+
 
 # Function: parseTimbre()
 # Args: the segmentTimbre input from a Node from neo4j
@@ -46,6 +69,11 @@ def parseTimbre(_tim):
 
 
 # cosine similarity helper function
+# getting numbers that are bigger than 0. Need to check if this is always outputting 
+# numbers between 0 and 1 ?? 
+
+# maybe negatives are messing with the numbers? Still, that should mean that the 
+# number goes negative, not that it can be greater than 1. 
 def cosSim(v1, v2):
 	"""compute cosine similarity of v1 to v2: (v1 dot v1)/{||v1||*||v2||)"""
 	_lenV1 = len(v1)
@@ -61,13 +89,18 @@ def cosSim(v1, v2):
 		sumxx += x*x
 		sumyy += y*y
 		sumxy += x*y
+	if sumxx * sumyy == 0: 
+		return 0
    	return sumxy/math.sqrt(sumxx*sumyy)
 
 # computes the distance between two given values
-
+# basic alg. Needs work probably. 
 def singleDiff(_tempo1, _tempo2):
-	retVal = (_tempo1 + _tempo2)/math.sqrt(_tempo1*_tempo2)
-	return retVal
+	_t1 = math.floor(_tempo1)
+	_t2 = math.floor(_tempo2)
+	if _t1 ==  _t2:
+		return 1
+	return 1 / math.sqrt((_t1 - _t2)**2)
 
 
 # Function: beatSim()
@@ -78,7 +111,10 @@ def singleDiff(_tempo1, _tempo2):
 # Returns: similarity coeffcient from 0-1
 
 def beatSim(_vector1, _vector2, _tempo1, _tempo2):
-	_simVal = (cosSim(_vector1, _vector2) * 1) + (singleDiff(_tempo1, _tempo2) * 0)
+	#print _tempo1
+	#print _tempo2
+	#print singleDiff(_tempo1, _tempo2)
+	_simVal = (cosSim(_vector1, _vector2) * .1) + (singleDiff(_tempo1, _tempo2) * .9)
 	return _simVal
 
 
@@ -145,7 +181,7 @@ def keySim(_key1, _key2) :
 	return (12 - float(cnt)) / 12
 
 # Function: compare()
-# Args: 2 nodes from our neo4j library.
+# Args: strings of names from 2 nodes from our neo4j library.
 #		Prereq: Nodes much have data for segmentTimbre, beatsStart, tempo
 #				segmentPitches, and segmentLoudness
 
@@ -153,19 +189,40 @@ def keySim(_key1, _key2) :
 # Special case: key - explained in keySim function
 
 # Returns: a normalized similarity coefficient between 0 and 1
-def compare(_n1, _n2) :
-	_timbre = timbreSim(_n1["segmentTimbre"], _n2["segmentTimbre"])
-	_beats = beatSim(_n1["beatsStart"], _n2["beatsStart"], _n1["tempo"], _n2["tempo"])
-	_key = keySim(_n1["key"], _n2["key"])
-	_pitch = cosSim(_n1["segmentPitches"], _n2["segmentPitches"])
-	_loudness = cosSim(_n1["segmentLoudness"], _n2["segmentLoudness"])
 
+# Fang's suggestions: Z-scores, machine learning for optimal metric setting, 
+
+def compare(_name1, _name2) :
+	_n1 = search(_name1); _n2 = search(_name2)
+	_results = []
+	# check the key here.
+	#if not filterKey(_n1.key(), _n2.key()) :
+	#	return -1
+ 
+		
+	_timbre = timbreSim(_n1.timbre(), _n2.timbre())
+	_beats = beatSim(_n1.beats(), _n2.beats(), _n1.tempo(), _n2.tempo())
+	_key = keySim(_n1.key(), _n2.key())
+	_pitch = cosSim(_n1.pitch(), _n2.pitch())
+	#_loudness = cosSim(_n1.loudness(), _n2.loudness())
+	_loudness = 0
+	# timbre, key, and pitch are the best metrics for evaluation. 
+	# currently, beats and loudness are all close together for all songs	
+	
+	#print _timbre
+	#print _beats
+	#print _key
+	#print _pitch
+
+	
 	_timbreSmoothing = .2
-	_beatsSmoothing = .2
-	_keySmoothing = .2
-	_pitchSmoothing = .2
-	_loudnessSmoothing = .2
+	_beatsSmoothing = .3
+	_keySmoothing = .4
+	_pitchSmoothing = .1
+	_loudnessSmoothing = 0   
 
-	return _timbre * _timbreSmoothing + _beats * _beatsSmoothing + _key * _keySmoothing + _pitch * _pitchSmoothing + _loudness * _loudnessSmoothing
+	_totalSim = _timbre * _timbreSmoothing + _beats * _beatsSmoothing + _key * _keySmoothing + _pitch * _pitchSmoothing + _loudness * _loudnessSmoothing
+
+	
 
 
