@@ -7,6 +7,32 @@ graph = Graph()
 sizeofGraph = 10000
 
 
+
+# add this to the node class ??
+
+
+
+def delRel(name1, name2, relName) :
+	qry = "MATCH (n:Song)-[rel:" + relName + "]->(n2:Song) AND n.name=\"" + name1 + "\" AND n2.name=\"" + name2 + "\" DELETE rel"
+	graph.cypher.execute(qry)
+	print "deleted relationship between " + name1 + " and " + name2
+
+
+# Function: addRel()
+# Args: 2 node name strings, and the similarity float
+
+# creates an undirected relationship between the two nodes and lists the similarity
+# as the property of the relationship.
+# neo4j does not support undirected creations, thus had to establish work around
+# by adding an inverted relationship. Can do this because the similarity between two
+# songs is identical no matter which one comes first in the arguments.
+def addRel(seed, node, sim):
+	_n1 = search(seed); _n2 = search(node)
+	rel = Relationship(_n1.node(), "SIM", _n2.node(), value=sim)
+	rel2 = Relationship(_n2.node(), "SIM", _n1.node(), value=sim)
+	graph.create(rel, rel2)		
+		
+
 # Function: escapeQuotes()
 # Args: A song name, which is a string
 
@@ -147,6 +173,9 @@ class search :
 		return self.__cypherQuery("segmentLoudness")
 	def name(self):
 		return self.name
+	def node(self):
+		qry = "MATCH (n:Song) WHERE n.name=\"" + self.name + "\" RETURN n"
+		return graph.cypher.execute(qry)[0][0] 
  	# can add more as I use them		
 
 

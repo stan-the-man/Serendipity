@@ -1,4 +1,5 @@
 import math
+from multiprocessing import Process, Manager
 from numpy import genfromtxt
 from graphDB import search
 
@@ -7,11 +8,8 @@ from graphDB import search
 # create a path for all these path thingies. Then find all the songs and randomize from
 # list.
 
-# Perhaps precompute similarities for all songs on path. A lot to compute and store
-# but would be useful for quicker results and retrieval. 
-
-# with precomputed, we can find things by text insta, AND select from better lists
-# for mp3 related information. 
+# also figure out which ones are computationally heavier and see if you need to do them
+# or if you can infer similarity without them!
 
 
 # Funtion: filterKey()
@@ -68,12 +66,7 @@ def parseTimbre(_tim):
 	return ret
 
 
-# cosine similarity helper function
-# getting numbers that are bigger than 0. Need to check if this is always outputting 
-# numbers between 0 and 1 ?? 
-
-# maybe negatives are messing with the numbers? Still, that should mean that the 
-# number goes negative, not that it can be greater than 1. 
+# cosine similarity helper function 
 def cosSim(v1, v2):
 	"""compute cosine similarity of v1 to v2: (v1 dot v1)/{||v1||*||v2||)"""
 	_lenV1 = len(v1)
@@ -111,9 +104,6 @@ def singleDiff(_tempo1, _tempo2):
 # Returns: similarity coeffcient from 0-1
 
 def beatSim(_vector1, _vector2, _tempo1, _tempo2):
-	#print _tempo1
-	#print _tempo2
-	#print singleDiff(_tempo1, _tempo2)
 	_simVal = (cosSim(_vector1, _vector2) * .1) + (singleDiff(_tempo1, _tempo2) * .9)
 	return _simVal
 
@@ -198,12 +188,11 @@ def compare(_name1, _name2) :
 	# check the key here.
 	#if not filterKey(_n1.key(), _n2.key()) :
 	#	return -1
- 
-		
-	_timbre = timbreSim(_n1.timbre(), _n2.timbre())
+
+	_timbre = timbreSim(_n1.timbre(), _n2.timbre())	 
 	_beats = beatSim(_n1.beats(), _n2.beats(), _n1.tempo(), _n2.tempo())
 	_key = keySim(_n1.key(), _n2.key())
-	_pitch = cosSim(_n1.pitch(), _n2.pitch())
+	_pitch = cosSim(_n1.pitch(), _n2.pitch())	
 	#_loudness = cosSim(_n1.loudness(), _n2.loudness())
 	_loudness = 0
 	# timbre, key, and pitch are the best metrics for evaluation. 
@@ -221,8 +210,77 @@ def compare(_name1, _name2) :
 	_pitchSmoothing = .1
 	_loudnessSmoothing = 0   
 
-	_totalSim = _timbre * _timbreSmoothing + _beats * _beatsSmoothing + _key * _keySmoothing + _pitch * _pitchSmoothing + _loudness * _loudnessSmoothing
+	return  _timbre * _timbreSmoothing + _beats * _beatsSmoothing + _key * _keySmoothing + _pitch * _pitchSmoothing + _loudness * _loudnessSmoothing
 
+
+# Function: compareT()
+# Args: 2 string names of songs
+
+# This function calculates the simliarity between all the relevant metrics of the 
+# song nodes in the neo4j database, and uses mulitprocessing to do the computation
+# accross all available cores on the computer. 
+# Currently running a 4 core MACbook laptop. 
+# Did this to try and decrease the computation time for the similarity computations.
+# and use computers cores more effectively. 
+
+# Metrics: timbre, beats, tempo, key, pitch
+
+# Returns a float value from 0-1 displaying the similarity between the two songs. 
+# 1 being most similar, 0 being least. 
+def compareT(name1, name2):
+	_n1 = search(name1); _n2 = search(name2)
+
+	manager = Manager()
 	
+	_timbre = manager.list([])
+	_beats = manager.list([])
+	_key = manager.list([])
+	_pitch = manager.list([])
+	_loudness = 0.0
 
+	_timbreThread = Process(target=timbreSimT, args=(_n1.timbre(), _n2.timbre(), _timbre))
+	_timbreThread.start(); #_timbreThread.join()
+	
+	_beatsThread = Process(target=beatSimT, args=(_n1.beats(), _n2.beats(), _n1.tempo(), _n2.tempo(), _beats))
+	_beatsThread.start(); #_beatsThread.join()
+	
+	_keyThread = Process(target=keySimT, args=(_n1.key(), _n2.key(), _key))
+	_keyThread.start(); #_keyThread.join()
+	
+	_pitchThread = Process(target=pitchSimT, args=(_n1.pitch(), _n2.pitch(), _pitch))
+	_pitchThread.start(); #_pitchThread.join()
+	
+	_timbreThread.join()
+	_beatsThread.join()
+	_keyThread.join()
+	_pitchThread.join()
+
+
+	_timbreSmoothing = .2
+	_beatsSmoothing = .3
+	_keySmoothing = .4
+	_pitchSmoothing = .1
+	_loudnessSmoothing = 0   
+
+	return  _timbre[0] * _timbreSmoothing + _beats[0] * _beatsSmoothing + _key[0] * _keySmoothing + _pitch[0] * _pitchSmoothing + _loudness * _loudnessSmoothing
+
+
+# Thread Similarity Helper functions: 
+
+# below are helper functions for the compareT function
+# the each use the similarity functions defined above, but
+# save the results in a list for pass-by-reference output for the threads
+# since Process class cannot return results (or I at least do not know how to do that)
+
+def keySimT(k1, k2, res):
+	res.append(keySim(k1, k2))
+	
+def timbreSimT(t1, t2, res) :
+	res.append(timbreSim(t1, t2))
+
+def beatSimT(b1, b2, t1, t2, res) :
+	res.append(beatSim(b1, b2, t1, t2))
+
+def pitchSimT(p1, p2, res) :
+	res.append(cosSim(p1, p2))
 
