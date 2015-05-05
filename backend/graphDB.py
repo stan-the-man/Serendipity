@@ -8,9 +8,20 @@ sizeofGraph = 10000
 
 
 
-def getResults(name):
-	searchSpace = narrowSearch(name)
-	seed = searchGraph(name)
+# Function: getResults()
+# Args: name of song/name of artist -- type string
+
+# Gets 8 randomly similar songs that are above a threshold value
+# of similarity. If they are above a higher threshold, a similarity
+# relationship is added to the graph database. 
+
+# At some point need to add a check for similar songs relationshipwise
+
+# Returns a list of 8 songs. 
+def getResults(_name):
+	searchSpace = narrowSearch(_name)
+	seed = searchGraph(0,1,name=_name)
+	ret = []
 
 	songsReturned = 8
 	ctr = 0
@@ -23,9 +34,11 @@ def getResults(name):
 		if sim > LOW_THRESH :
 			ctr += 1
 			node = node.encode('utf-8')
+			ret.append(node)
 		if sim > HIGH_THRESH : 
 			addRel(seed, node, sim)
 
+	return ret
 
 def delRel(name1, name2, relName) :
 	qry = "MATCH (n:Song)-[rel:" + relName + "]->(n2:Song) AND n.name=\"" + name1 + "\" AND n2.name=\"" + name2 + "\" DELETE rel"
@@ -191,9 +204,21 @@ class search :
 	def node(self):
 		qry = "MATCH (n:Song) WHERE n.name=\"" + self.name + "\" RETURN n"
 		return graph.cypher.execute(qry)[0][0] 
- 	# can add more as I use them		
+ 	def artist(self):
+		qry = "MATCH (n:Artist)-[rel:WROTE]->(r:Song) WHERE r.name = \"" + self.name + "\" RETURN n"
+		return graph.cypher.execute(qry)[0][0]
+	# can add more as I use them		
 
 
+
+# Function: searchArtist
+# matches a song with a given artist
+
+# Returns results of cypher query
+
+def searchArtist(_artist):
+	query = "MATCH (n:Artist)-[rel:WROTE]->(r:Song) WHERE n.name=\"" + _artist + "\" RETURN r.name"
+	return graph.cypher.execute(query)[0][0]
 
 # Function: searchString
 # matches a metric with a string value (name, artist, genre)
@@ -291,6 +316,8 @@ def searchGraph(var, rVal, **kwargs):
 			#print "------" + metric + "-----"
 			if metric == 'name':
 				songList = searchString(metric, value, rVal)
+			elif metric == 'artist':
+				songList = searchArtist(value)
 			elif metric == 'key' or metric == 'timeSig':
 				totalQueries.append(qInf)
 			else:

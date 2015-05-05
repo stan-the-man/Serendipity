@@ -44,6 +44,9 @@ class Resource(object):
 
 	def on_get(self, req, resp, filename):
 		name = req.stream.read(4096)
+		
+		# need to check this for artist and song name. 
+		# consider ways to parse 
 		songs = getResults(name)
 		
 		resp.status = falcon.HTTP_200
