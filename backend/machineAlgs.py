@@ -1,5 +1,5 @@
 import math
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Pool
 from numpy import genfromtxt
 from graphDB import search
 
@@ -127,6 +127,8 @@ def timbreSim(_tim1, _tim2) :
 		minLen = _lenV1
 	else:
 		minLen = _lenV2
+
+	# can try and thread this for increased exectution speed?!?
 	
 	for i in range(minLen) :
 			_simi.append(cosSim(t1[i],t2[i]))
@@ -231,7 +233,9 @@ def compareT(name1, name2):
 	_n1 = search(name1); _n2 = search(name2)
 
 	manager = Manager()
-	
+
+
+#	_timbre = _timbreSimT(_n1.timbre(), _n2.timbre())	
 	_timbre = manager.list([])
 	_beats = manager.list([])
 	_key = manager.list([])
@@ -284,3 +288,64 @@ def beatSimT(b1, b2, t1, t2, res) :
 def pitchSimT(p1, p2, res) :
 	res.append(cosSim(p1, p2))
 
+# Function _timbreSimT()
+# Args: 2 raw timbre arrays
+
+# Attempts to use the variable cores on my computer to compute the cosine Sim of the 
+# Timbre. Unfortunately, this appears to be a second slower than the other program.
+# Not sure why. 
+
+
+def _timbreSimT(_tim1, _tim2) :
+	_simi = []
+	t1 = parseTimbre(_tim1); t2 = parseTimbre(_tim2)
+	
+	_lenV1 = len(t1)
+	_lenV2 = len(t2)
+	minLen = 0
+	if _lenV1 < _lenV2:
+		minLen = _lenV1
+	else:
+		minLen = _lenV2
+
+	# can try and thread this for increased exectution speed?!?
+	
+
+	pool = Pool(processes=minLen)
+	for i in range(len(t1)) :
+		poolInput = [t1[i], t2[i]]
+		_timbreThread = pool.apply_async(cosSimT, [poolInput])
+		_simi.append(_timbreThread.get(timeout = 1))
+
+	
+	#for i in range(minLen) :
+	#		_simi.append(cosSim(t1[i],t2[i]))
+	
+	#_smoothing = [] # should have 12 values, one for each entry in the timbre tuple
+	_ret = 0.0 
+	for i in _simi :
+		_ret = _ret + i	
+	
+	return _ret / 12
+
+
+# cosine similarity helper function 
+def cosSimT(l):
+	v1 = l[0]; v2 = l[1]
+	"""compute cosine similarity of v1 to v2: (v1 dot v1)/{||v1||*||v2||)"""
+	_lenV1 = len(v1)
+	_lenV2 = len(v2)
+	minLen = 0
+	if _lenV1 < _lenV2:
+		minLen = _lenV1
+	else:
+		minLen = _lenV2
+	sumxx, sumxy, sumyy = 0, 0, 0
+	for i in range(minLen):
+		x = v1[i]; y = v2[i]
+		sumxx += x*x
+		sumyy += y*y
+		sumxy += x*y
+	if sumxx * sumyy == 0: 
+		return 0
+   	return sumxy/math.sqrt(sumxx*sumyy)

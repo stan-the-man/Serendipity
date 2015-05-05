@@ -8,8 +8,23 @@ sizeofGraph = 10000
 
 
 
-# add this to the node class ??
+def getResults(name):
+	searchSpace = narrowSearch(name)
+	seed = searchGraph(name)
 
+	songsReturned = 8
+	ctr = 0
+	LOW_THRESH = 0.5
+	HIGH_THRESH = 0.65
+
+	while ctr < songsReturned:
+		node = searchSpace[random.randrange(len(searchSpace)-1)]
+		sim = compare(seed, node)
+		if sim > LOW_THRESH :
+			ctr += 1
+			node = node.encode('utf-8')
+		if sim > HIGH_THRESH : 
+			addRel(seed, node, sim)
 
 
 def delRel(name1, name2, relName) :

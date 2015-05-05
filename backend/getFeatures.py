@@ -1,6 +1,7 @@
-#Beat tracking example
 import librosa
 import numpy
+
+# make this into a class!
 
 
 def getBeats(path):
@@ -48,7 +49,13 @@ def getDuration(filename):
 	return duration
 
 
+# not working!!
+def getPitch(filename):
+	y, sr = librosa.load(filename)
+	hopLen = 64
 
+	pitch, magnitudes = librosa.core.piptrack(y=y, sr=sr, hop_length=hopLen)
+	return pitch
 
 """
 Name - string

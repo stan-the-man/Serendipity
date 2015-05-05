@@ -2,7 +2,7 @@ import os
 import time
 import uuid
 from getFeatures import getBeats, getTuning, getMFCC
-from graphDB import searchGraph #, graphSim
+from graphDB import getResults
 
 import falcon
 
@@ -21,58 +21,34 @@ def _generate_id():
 
 
 class Resource(object):
+	def __init__(self, storage_path):
+		self.storage_path = storage_path
 
-    def __init__(self, storage_path):
-        self.storage_path = storage_path
-
-    def on_post(self, req, resp, filename):
-			# Take in file name. Search for file in song directory
-			# Run diagnostics on that found file
-			# Return a list of similar songs
-			
-
-			# songName = req.stream.read(4096)
-			# songName = songName.strip()
-			# ext = '.mp3'
-			# filename = songName + ext
-			song_path = os.path.join(self.storage_path, filename)
-			getBeats(song_path)
-			
-			#optimizer: open file once instead of multiple IO's?
-			resp.status = falcon.HTTP_201
-			resp.location = '/song_ids/'
-
+	def on_post(self, req, resp, filename):
+		# Take in file name. Search for file in song directory
+		# Run diagnostics on that found file
+		# Return a list of similar songs
 		
 
-
-		# with searchBPM(getBPM(song_id.ext)) as sim_songs
-
-		
-		# for s in sim_songs
-			# print s
-			# write to output
-			# resp.body = resp.body + s + '\n'
+		# songName = req.stream.read(4096)
+		# songName = songName.strip()
+		# ext = '.mp3'
+		# filename = songName + ext
+		song_path = os.path.join(self.storage_path, filename)
+		getBeats(song_path)
 			
+		#optimizer: open file once instead of multiple IO's?
+		resp.status = falcon.HTTP_201
+		resp.location = '/song_ids/'
+
+
+	def on_get(self, req, resp, filename):
+		name = req.stream.read(4096)
+		songs = getResults(name)
 		
-		#if(req.query_string != ""):
-			#parse query string for the info and generate cypher search strings
-			"""
-			queries = req.get_param_as_list(Search)
-			
-			exists = graphSearch(queries)
-			if(exists):
-				ret = graphSim(exists)
-
-			resp.status = falcon.HTTP_201
-			resp.body = ret
-			"""
-
-	def on_get(self, req, resp, filename) :
-		# do what is in test.py
-		# so for now. Getting random results... 
-		# want to precompute top results??!?
-
-				
+		resp.status = falcon.HTTP_200
+		resp.body = songs
+		
 
 
 
