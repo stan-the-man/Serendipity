@@ -211,14 +211,18 @@ class search :
 
 
 
-# Function: searchArtist
-# matches a song with a given artist
+# Function: searchArtist()
+# matches a given artist name and returns all the songs from that artist in the
+# database
 
 # Returns results of cypher query
 
 def searchArtist(_artist):
+	songs = []
 	query = "MATCH (n:Artist)-[rel:WROTE]->(r:Song) WHERE n.name=\"" + _artist + "\" RETURN r.name"
-	return graph.cypher.execute(query)[0][0]
+	for a in  graph.cypher.execute(query):
+		songs.append(a[0])
+	return songs
 
 # Function: searchString
 # matches a metric with a string value (name, artist, genre)
@@ -317,7 +321,10 @@ def searchGraph(var, rVal, **kwargs):
 			if metric == 'name':
 				songList = searchString(metric, value, rVal)
 			elif metric == 'artist':
-				songList = searchArtist(value)
+				songList = []
+				temp = searchArtist(value)
+				for i in temp:
+					songList.append(i)
 			elif metric == 'key' or metric == 'timeSig':
 				totalQueries.append(qInf)
 			else:
